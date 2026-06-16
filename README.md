@@ -1,95 +1,105 @@
-# RoomieUs — Guia de posada en marxa
+# RoomieUs — Guía de puesta en marcha
 
-## 1. Configurar Supabase (base de dades gratuïta)
+## 1. Configurar Supabase (base de datos gratuita)
 
-1. Ves a https://supabase.com → "Start your project" → registra't
-2. Crea un nou projecte (dona-li el nom "roomieus")
-3. Un cop creat, ves a **SQL Editor** i pega tot el contingut de `supabase_schema.sql`
-4. Fes clic a **Run** — crearà totes les taules, polítiques de seguretat i el trigger d'usuaris
-5. Ves a **Project Settings > API** i copia:
-   - **Project URL** (ex: `https://abcde12345.supabase.co`)
-   - **anon public key** (clau llarga que comença per `eyJ...`)
-6. A Supabase, ves a **Authentication > URL Configuration** i posa:
-   - Site URL: `https://roomieus.vercel.app` (o el teu domini)
+1. Ve a https://supabase.com → "Start your project" → regístrate
+2. Crea un nuevo proyecto
+3. Ve a **SQL Editor** y pega el contenido de `supabase_schema.sql`
+4. Haz clic en **Run**
+5. Ve a **Project Settings > API Keys** y copia:
+   - **Project URL** (ej: `https://abcde12345.supabase.co`)
+   - **anon public key**
 
-## 2. Configurar el projecte localment
+## 2. Arreglar el envío de correos (verificación, recuperación de contraseña)
+
+Por defecto, Supabase usa un servidor de correo de pruebas limitado a 3 emails/hora.
+Para producción real, conecta Resend (gratis hasta 3.000 emails/mes):
+
+1. Crea cuenta en https://resend.com
+2. Verifica tu dominio (o usa el dominio de pruebas de Resend al principio)
+3. Genera una API Key en Resend
+4. En Supabase: **Project Settings > Auth > SMTP Settings**
+5. Activa "Enable Custom SMTP" y rellena:
+   - Host: `smtp.resend.com`
+   - Puerto: `465`
+   - Usuario: `resend`
+   - Contraseña: tu API Key de Resend
+   - Sender email: el correo de tu dominio verificado
+
+## 3. Configurar el proyecto localmente
 
 ```bash
-# Clona o copia la carpeta roomieus/
 cd roomieus
 npm install
-
-# Crea el fitxer d'entorn
 cp .env.example .env
-# Edita .env i posa la teva URL i clau de Supabase
-
-npm start  # Obre http://localhost:3000
+# Edita .env con tu URL y clave de Supabase
+npm start
 ```
 
-## 3. Desplegar a Vercel (gratis)
+## 4. Desplegar a Vercel
 
-1. Ves a https://vercel.com → registra't amb GitHub
-2. Puja la carpeta `roomieus/` a un repositori de GitHub
-3. A Vercel: **Add New Project** → importa el repositori
-4. A **Environment Variables** afegeix:
-   - `REACT_APP_SUPABASE_URL` = la teva URL
-   - `REACT_APP_SUPABASE_ANON_KEY` = la teva clau
-5. Fes clic a **Deploy** → en 2 minuts tens la URL pública
+1. Sube la carpeta a un repositorio de GitHub
+2. En https://vercel.com: **Add New Project** → importa el repositorio
+3. Añade las variables de entorno:
+   - `REACT_APP_SUPABASE_URL`
+   - `REACT_APP_SUPABASE_ANON_KEY`
+4. Asegúrate de que `vercel.json` está en la raíz (ya incluido)
+5. **Deploy**
 
-## Estructura del projecte
+## Estructura del proyecto
 
 ```
 roomieus/
-├── public/
-│   └── index.html
+├── public/index.html
 ├── src/
-│   ├── lib/
-│   │   └── supabase.js          ← client Supabase
+│   ├── lib/supabase.js
 │   ├── context/
-│   │   ├── AuthContext.js       ← autenticació global
-│   │   └── PisContext.js        ← estat del pis actiu
-│   ├── components/
-│   │   └── AppShell.js          ← layout amb sidebar
+│   │   ├── AuthContext.js       ← autenticación (acepta cualquier correo válido)
+│   │   └── PisContext.js
+│   ├── components/AppShell.js
 │   ├── pages/
+│   │   ├── Landing.js           ← página de presentación pública
+│   │   ├── Landing.css
 │   │   ├── auth/
 │   │   │   ├── Login.js
-│   │   │   ├── Registre.js
-│   │   │   └── RecuperarContrasenya.js
+│   │   │   ├── Registro.js
+│   │   │   └── RecuperarContrasena.js
 │   │   └── dashboard/
-│   │       ├── Inici.js
-│   │       ├── Tasques.js
-│   │       ├── Despeses.js
-│   │       ├── Xat.js           ← temps real amb Supabase Realtime
-│   │       ├── Calendari.js
-│   │       ├── Membres.js
-│   │       ├── Suport.js
-│   │       └── ConfigPis.js
-│   ├── App.js                   ← routing principal
+│   │       ├── Inicio.js
+│   │       ├── Tareas.js
+│   │       ├── Gastos.js
+│   │       ├── Chat.js          ← tiempo real con Supabase Realtime
+│   │       ├── Calendario.js
+│   │       ├── Miembros.js
+│   │       ├── Soporte.js
+│   │       └── ConfigPiso.js
+│   ├── App.js                   ← rutas: "/" es la landing, "/app" es el dashboard
 │   ├── index.js
 │   └── index.css
-├── supabase_schema.sql          ← copia i pega a Supabase
-├── .env.example                 ← plantilla de variables d'entorn
+├── supabase_schema.sql
+├── vercel.json
+├── .env.example
 └── package.json
 ```
 
-## Funcionament bàsic
+## Rutas de la app
 
-1. L'usuari es registra amb correu @id.uib.eu
-2. Confirma el correu (Supabase envia l'email automàticament)
-3. Inicia sessió → si no té pis, pot crear-ne un o unir-se amb codi
-4. El creador del pis es converteix en administrador automàticament
-5. L'administrador convida membres per correu o codi
+- `/` → Landing page pública
+- `/login` → Iniciar sesión
+- `/registro` → Crear cuenta
+- `/app` → Dashboard (requiere login)
+- `/app/tareas`, `/app/gastos`, `/app/chat`, `/app/calendario`, `/app/miembros`, `/app/soporte`, `/app/configuracion`
 
-## Cost
+## Próximos pasos para monetizar (pendiente de implementar)
 
-- **Supabase Free Tier**: fins a 50.000 usuaris, 500MB base de dades, 2GB de fitxers — gratuït
-- **Vercel Hobby**: hosting gratuït, dominis `.vercel.app` gratuïts
-- **Domini propi** (opcional): ~10€/any a Namecheap o Cloudflare
+1. **Stripe Checkout** — añadir botón de pago en la landing y página de planes dentro de la app
+2. **Webhook de Stripe** — función serverless que actualice `usuaris.plan` a `'premium'` cuando se confirme el pago
+3. **Límites por plan** — bloquear creación de más de 1 piso o más de 4 miembros en plan gratis
+4. **Dominio propio** — comprar `roomieus.es` o similar y conectarlo en Vercel
 
-## Per llançar-la "de debò" (passos addicionals)
+## Coste actual
 
-1. **Domini**: Compra `roomieus.es` (~10€/any) i connecta'l a Vercel
-2. **Email transaccional**: Configura Supabase amb SendGrid o Resend per enviar emails de verificació personalitzats
-3. **PWA**: Afegeix un manifest.json per instal·lar-la al mòbil com a app nativa
-4. **Analytics**: Afegeix Plausible o Vercel Analytics per veure l'ús
-5. **Legal**: Crea una política de privacitat i termes d'ús (obligatori a la UE)
+- Supabase Free Tier: gratis hasta 50.000 usuarios
+- Vercel Hobby: gratis
+- Resend: gratis hasta 3.000 emails/mes
+- Dominio propio (opcional): ~10€/año

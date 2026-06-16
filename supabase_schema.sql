@@ -8,12 +8,16 @@ create extension if not exists "uuid-ossp";
 
 -- ──────────────────────────────────────────
 -- USUARIS (extén auth.users de Supabase)
+-- Nota: la validación de correo (gmail, hotmail, etc.) se hace en el frontend,
+-- aquí no hay restricción de dominio.
 -- ──────────────────────────────────────────
 create table public.usuaris (
   id           uuid primary key references auth.users(id) on delete cascade,
   nom          text not null,
   correu       text not null unique,
   foto_url     text,
+  plan         text not null default 'gratis' check (plan in ('gratis','premium')),
+  stripe_customer_id text,
   estat_compte text not null default 'actiu' check (estat_compte in ('actiu','suspès','eliminat')),
   creat_a      timestamptz not null default now()
 );

@@ -15,9 +15,9 @@ export default function Login() {
     setError(''); setLoading(true)
     try {
       await iniciarSessio(correu, contrasenya)
-      navigate('/')
+      navigate('/app')
     } catch (err) {
-      setError(err.message)
+      setError('Correo o contraseña incorrectos')
     } finally {
       setLoading(false)
     }
@@ -27,31 +27,31 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo">RoomieUs</div>
-        <div className="auth-sub">Gestió de pisos compartits per a estudiants de la UIB</div>
-
+        <div className="auth-sub">Gestión de pisos compartidos</div>
         {error && <div className="alert alert-error">{error}</div>}
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Correu institucional</label>
-            <input className="form-input" type="email" placeholder="alumne@id.uib.eu"
+            <label className="form-label">Correo</label>
+            <input className="form-input" type="email" placeholder="tu@correo.com"
               value={correu} onChange={e => setCorreu(e.target.value)} required />
           </div>
           <div className="form-group">
-            <label className="form-label">Contrasenya</label>
+            <label className="form-label">Contraseña</label>
             <input className="form-input" type="password" placeholder="••••••••"
               value={contrasenya} onChange={e => setContrasenya(e.target.value)} required />
           </div>
           <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center' }}>
-            {loading ? 'Iniciant sessió...' : 'Iniciar sessió'}
+            {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
           </button>
         </form>
-
-        <Link to="/recuperar-contrasenya" className="auth-link" style={{ marginTop: 10 }}>
-          He oblidat la contrasenya
+        <Link to="/recuperar-contrasena" className="auth-link" style={{ marginTop: 10 }}>
+          He olvidado mi contraseña
         </Link>
-        <Link to="/registre" className="auth-link">
-          No tens compte? Registra't
+        <Link to="/registro" className="auth-link">
+          ¿No tienes cuenta? Regístrate gratis
+        </Link>
+        <Link to="/" className="auth-link" style={{ color: 'var(--gray-400)' }}>
+          ← Volver al inicio
         </Link>
       </div>
     </div>

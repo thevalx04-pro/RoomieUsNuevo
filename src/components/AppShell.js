@@ -3,15 +3,15 @@ import { useAuth } from '../context/AuthContext'
 import { usePis } from '../context/PisContext'
 
 const NAV = [
-  { to: '/', label: 'Inici', icon: IconHome, end: true },
-  { to: '/tasques', label: 'Tasques', icon: IconCheck },
-  { to: '/despeses', label: 'Despeses', icon: IconReceipt },
-  { to: '/xat', label: 'Xat del pis', icon: IconMsg },
-  { to: '/calendari', label: 'Calendari', icon: IconCal },
+  { to: '/app', label: 'Inicio', icon: IconHome, end: true },
+  { to: '/app/tareas', label: 'Tareas', icon: IconCheck },
+  { to: '/app/gastos', label: 'Gastos', icon: IconReceipt },
+  { to: '/app/chat', label: 'Chat del piso', icon: IconMsg },
+  { to: '/app/calendario', label: 'Calendario', icon: IconCal },
 ]
 const NAV2 = [
-  { to: '/membres', label: 'Membres', icon: IconUsers },
-  { to: '/suport', label: 'Suport', icon: IconHelp },
+  { to: '/app/miembros', label: 'Miembros', icon: IconUsers },
+  { to: '/app/soporte', label: 'Soporte', icon: IconHelp },
 ]
 
 export default function AppShell({ children }) {
@@ -31,9 +31,8 @@ export default function AppShell({ children }) {
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-text">RoomieUs</div>
-          <div className="pis-name">{pis ? pis.nom : 'Sense pis assignat'}</div>
+          <div className="pis-name">{pis ? pis.nom : 'Sin piso asignado'}</div>
         </div>
-
         <nav className="nav">
           <div className="nav-section-label">Principal</div>
           {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -41,39 +40,32 @@ export default function AppShell({ children }) {
               <Icon />{label}
             </NavLink>
           ))}
-          <div className="nav-section-label" style={{ marginTop: 8 }}>Gestió</div>
+          <div className="nav-section-label" style={{ marginTop: 8 }}>Gestión</div>
           {NAV2.map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
               <Icon />{label}
             </NavLink>
           ))}
           {rolUsuari === 'administrador' && (
-            <NavLink to="/configuracio" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
-              <IconSettings />Configuració del pis
+            <NavLink to="/app/configuracion" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
+              <IconSettings />Configuración
             </NavLink>
           )}
         </nav>
-
         <div className="sidebar-user">
           <div className="avatar">{inicials}</div>
           <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
             <div className="name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{perfil?.nom}</div>
-            <div className="role">{rolUsuari === 'administrador' ? 'Administrador' : 'Resident'}</div>
+            <div className="role">{rolUsuari === 'administrador' ? 'Administrador' : 'Residente'}</div>
           </div>
-          <button className="btn-icon btn" onClick={handleLogout} title="Tancar sessió">
-            <IconLogout />
-          </button>
+          <button className="btn-icon btn" onClick={handleLogout} title="Cerrar sesión"><IconLogout /></button>
         </div>
       </aside>
-
-      <main className="main">
-        {children}
-      </main>
+      <main className="main">{children}</main>
     </div>
   )
 }
 
-// ── Inline SVG icons ──
 function IconHome() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg> }
 function IconCheck() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M9 12l2 2 4-4"/><path d="M3 9h18"/></svg> }
 function IconReceipt() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 2v20l3-2 2 2 3-2 3 2 2-2 3 2V2l-3 2-2-2-3 2-3-2-2 2-3-2z"/><path d="M8 10h8M8 14h5"/></svg> }

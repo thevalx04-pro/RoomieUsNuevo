@@ -14,13 +14,11 @@ export function AuthProvider({ children }) {
       if (session?.user) fetchPerfil(session.user.id)
       else setLoading(false)
     })
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchPerfil(session.user.id)
       else { setPerfil(null); setLoading(false) }
     })
-
     return () => subscription.unsubscribe()
   }, [])
 
@@ -30,21 +28,27 @@ export function AuthProvider({ children }) {
     setLoading(false)
   }
 
+  function validarCorreo(correu) {
+    // Acepta cualquier correo válido (gmail, hotmail, yahoo, etc.)
+    const regex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/
+    return regex.test(correu)
+  }
+
   async function registrar(correu, contrasenya, nom) {
-    if (!correu.endsWith('@id.uib.eu') && !correu.endsWith('@uib.es')) {
-      throw new Error('Has d\'usar el correu institucional de la UIB (@id.uib.eu)')
+    if (!validarCorreo(correu)) {
+      throw new Error('Introduce un correo electrónico válido (ej: tunombre@gmail.com)')
     }
     const { error } = await supabase.auth.signUp({
       email: correu,
       password: contrasenya,
       options: { data: { nom } }
     })
-    if (error) throw error
+    if (error) throw new Error('Error al crear la cuenta: ' + error.message)
   }
 
   async function iniciarSessio(correu, contrasenya) {
     const { error } = await supabase.auth.signInWithPassword({ email: correu, password: contrasenya })
-    if (error) throw new Error('Correu o contrasenya incorrectes')
+    if (error) throw new Error('Correo o contraseña incorrectos')
   }
 
   async function tancarSessio() {
@@ -53,9 +57,9 @@ export function AuthProvider({ children }) {
 
   async function recuperarContrasenya(correu) {
     const { error } = await supabase.auth.resetPasswordForEmail(correu, {
-      redirectTo: `${window.location.origin}/nova-contrasenya`
+      redirectTo: `${window.location.origin}/nueva-contrasena`
     })
-    if (error) throw error
+    if (error) throw new Error('No se pudo enviar el correo de recuperación')
   }
 
   return (

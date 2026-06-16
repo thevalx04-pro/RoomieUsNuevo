@@ -19,7 +19,6 @@ export function PisProvider({ children }) {
       .eq('usuari_id', user.id)
       .is('data_sortida', null)
       .single()
-
     if (membre) {
       setPis(membre.pisos)
       setRolUsuari(membre.rol)
@@ -43,41 +42,31 @@ export function PisProvider({ children }) {
     const { data: nouPis, error } = await supabase
       .from('pisos')
       .insert({ nom, limit_residents: limitResidents, normes })
-      .select()
-      .single()
+      .select().single()
     if (error) throw error
-
     await supabase.from('membres_pis').insert({
-      usuari_id: user.id,
-      pis_id: nouPis.id,
-      rol: 'administrador'
+      usuari_id: user.id, pis_id: nouPis.id, rol: 'administrador'
     })
     await fetchPis()
     return nouPis
   }
 
   async function convidarMembre(correu) {
-    if (!pis) throw new Error('No estàs en cap pis')
-    const { error } = await supabase.from('invitacions').insert({
-      pis_id: pis.id,
-      correu
-    })
+    if (!pis) throw new Error('No estás en ningún piso')
+    const { error } = await supabase.from('invitacions').insert({ pis_id: pis.id, correu })
     if (error) throw error
   }
 
   async function acceptarInvitacio(codiOCorreu) {
-    const { data: inv } = await supabase
+    const { data: inv, error } = await supabase
       .from('invitacions')
       .select('*')
       .or(`codi.eq.${codiOCorreu},correu.eq.${codiOCorreu}`)
       .eq('estat', 'pendent')
       .single()
-    if (!inv) throw new Error('Invitació no trobada o ja usada')
-
+    if (error || !inv) throw new Error('Invitación no encontrada o ya usada')
     await supabase.from('membres_pis').insert({
-      usuari_id: user.id,
-      pis_id: inv.pis_id,
-      rol: 'resident'
+      usuari_id: user.id, pis_id: inv.pis_id, rol: 'resident'
     })
     await supabase.from('invitacions').update({ estat: 'acceptada' }).eq('id', inv.id)
     await fetchPis()
