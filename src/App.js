@@ -14,17 +14,18 @@ import Calendario from './pages/dashboard/Calendario'
 import Miembros from './pages/dashboard/Miembros'
 import Soporte from './pages/dashboard/Soporte'
 import ConfigPiso from './pages/dashboard/ConfigPiso'
+import Planes from './pages/dashboard/Planes'
 import './index.css'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="loading-center"><div className="spinner" /></div>
+  if (loading) return <div className="loading-center" style={{ height: '100vh' }}><div className="spinner" /></div>
   return user ? children : <Navigate to="/login" replace />
 }
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="loading-center"><div className="spinner" /></div>
+  if (loading) return <div className="loading-center" style={{ height: '100vh' }}><div className="spinner" /></div>
   return user ? <Navigate to="/app" replace /> : children
 }
 
@@ -50,6 +51,7 @@ export default function App() {
                     <Route path="/miembros" element={<Miembros />} />
                     <Route path="/soporte" element={<Soporte />} />
                     <Route path="/configuracion" element={<ConfigPiso />} />
+                    <Route path="/planes" element={<Planes />} />
                   </Routes>
                 </AppShell>
               </PisProvider>

@@ -7,7 +7,7 @@ import { usePis } from '../../context/PisContext'
 export default function Inicio() {
   const { perfil } = useAuth()
   const { pis, membres, crearPis, acceptarInvitacio } = usePis()
-  const [stats, setStats] = useState({ pendientes: 0, hechas: 0, gastoTotal: 0, pendientePago: 0 })
+  const [stats, setStats] = useState({ pendientes: 0, hechas: 0, gastoTotal: 0 })
   const [proximos, setProximos] = useState([])
   const [formPiso, setFormPiso] = useState({ nom: '', limit: 4, normes: '' })
   const [codiInvit, setCodiInvit] = useState('')
@@ -31,7 +31,6 @@ export default function Inicio() {
       pendientes: t.filter(x => x.estat === 'pendent').length,
       hechas: t.filter(x => x.estat === 'completada').length,
       gastoTotal: d.reduce((a, x) => a + parseFloat(x.import_total), 0),
-      pendientePago: 0
     })
   }
 
@@ -59,11 +58,11 @@ export default function Inicio() {
 
   if (!pis) return (
     <div>
-      <div className="topbar"><span className="topbar-title">¡Bienvenido, {perfil?.nom?.split(' ')[0]}!</span></div>
-      <div className="page-content" style={{ maxWidth: 500, margin: '0 auto' }}>
+      <div className="topbar"><span className="topbar-title">¡Bienvenido, {perfil?.nom?.split(' ')[0]}! 👋</span></div>
+      <div className="page-content" style={{ maxWidth: 520, margin: '0 auto' }}>
         {error && <div className="alert alert-error">{error}</div>}
-        <div className="card">
-          <div className="card-title">Crear un piso nuevo</div>
+        <div className="card animate-in-1">
+          <div className="card-title">🏠 Crear un piso nuevo</div>
           <form onSubmit={handleCrearPiso}>
             <div className="form-group">
               <label className="form-label">Nombre del piso</label>
@@ -85,15 +84,16 @@ export default function Inicio() {
             </button>
           </form>
         </div>
-        <div className="card" style={{ marginTop: 16 }}>
-          <div className="card-title">Unirme a un piso existente</div>
+        <div style={{ textAlign: 'center', padding: '12px 0', color: 'var(--gray-400)', fontSize: 13 }}>— o —</div>
+        <div className="card animate-in-2">
+          <div className="card-title">🔑 Unirme a un piso existente</div>
           <form onSubmit={handleUnirse}>
             <div className="form-group">
               <label className="form-label">Código de invitación</label>
               <input className="form-input" placeholder="Ej: a3f7b2c1" value={codiInvit}
                 onChange={e => setCodiInvit(e.target.value)} required />
             </div>
-            <button className="btn" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center' }}>
+            <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center' }}>
               {loading ? 'Uniéndome...' : 'Unirme al piso'}
             </button>
           </form>
@@ -104,55 +104,96 @@ export default function Inicio() {
 
   const total = stats.pendientes + stats.hechas
   const pct = total > 0 ? Math.round(stats.hechas / total * 100) : 0
+  const hora = new Date().getHours()
+  const saludo = hora < 12 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches'
+
+  const eventoColors = { festa: 'var(--coral)', recordatori: 'var(--amber)', visita: 'var(--purple)', absencia: 'var(--gray-400)' }
+  const eventoEmoji = { festa: '🎉', recordatori: '🔔', visita: '👋', absencia: '✈️' }
 
   return (
     <div>
       <div className="topbar">
-        <span className="topbar-title">¡Hola, {perfil?.nom?.split(' ')[0]}!</span>
-        <div className="topbar-actions">
-          <span style={{ fontSize: 13, color: 'var(--gray-400)' }}>{membres.length} residentes · {pis.nom}</span>
+        <div>
+          <span className="topbar-title">{saludo}, {perfil?.nom?.split(' ')[0]}! 👋</span>
+          <div style={{ fontSize: 12, color: 'var(--gray-400)', marginTop: 2 }}>
+            {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
         </div>
+        <span style={{ fontSize: 12, color: 'var(--gray-400)', background: 'var(--gray-100)', padding: '5px 12px', borderRadius: 20, border: 'var(--border)' }}>
+          🏠 {pis.nom} · {membres.length} residentes
+        </span>
       </div>
+
       <div className="page-content">
+        {/* Metric cards */}
         <div className="grid-4">
-          <div className="metric"><div className="metric-label">Tareas pendientes</div><div className="metric-val coral">{stats.pendientes}</div></div>
-          <div className="metric"><div className="metric-label">Tareas hechas</div><div className="metric-val teal">{stats.hechas}</div></div>
-          <div className="metric"><div className="metric-label">Gastos del mes</div><div className="metric-val purple">{stats.gastoTotal.toFixed(2)}€</div></div>
-          <div className="metric"><div className="metric-label">Residentes</div><div className="metric-val amber">{membres.length}</div></div>
+          {[
+            { label: 'Tareas pendientes', val: stats.pendientes, color: 'coral', accent: 'coral-accent', icon: '⏳' },
+            { label: 'Tareas hechas', val: stats.hechas, color: 'teal', accent: 'teal-accent', icon: '✅' },
+            { label: 'Gastos registrados', val: stats.gastoTotal.toFixed(0) + '€', color: 'purple', accent: 'purple-accent', icon: '💰' },
+            { label: 'Residentes', val: membres.length, color: 'amber', accent: 'amber-accent', icon: '👥' },
+          ].map((m, i) => (
+            <div key={m.label} className={`metric ${m.accent} animate-in-${i + 1}`}>
+              <div style={{ fontSize: 20, marginBottom: 4 }}>{m.icon}</div>
+              <div className="metric-label">{m.label}</div>
+              <div className={`metric-val ${m.color}`}>{m.val}</div>
+            </div>
+          ))}
         </div>
+
         <div className="grid-2">
-          <div className="card">
-            <div className="card-title">Progreso de tareas
-              <Link to="/app/tareas" style={{ fontSize: 12, color: 'var(--purple)', fontWeight: 400 }}>Ver todas →</Link>
+          {/* Progreso tareas */}
+          <div className="card animate-in-1">
+            <div className="card-title">
+              📋 Progreso de tareas
+              <Link to="/app/tareas" style={{ fontSize: 12, color: 'var(--purple)', fontWeight: 500 }}>Ver todas →</Link>
             </div>
-            <div style={{ fontSize: 12, color: 'var(--gray-400)', marginBottom: 6 }}>{stats.hechas} de {total} completadas ({pct}%)</div>
-            <div className="progress-bar"><div className="progress-fill" style={{ width: pct + '%' }} /></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--gray-400)', marginBottom: 10 }}>
+              <span>{stats.hechas} completadas</span>
+              <span style={{ fontWeight: 700, color: pct > 70 ? 'var(--teal)' : 'var(--amber)' }}>{pct}%</span>
+            </div>
+            <div className="progress-bar" style={{ height: 10 }}>
+              <div className="progress-fill" style={{ width: pct + '%', background: pct > 70 ? 'linear-gradient(90deg, var(--teal), #2DCE96)' : 'linear-gradient(90deg, var(--amber), #F5A623)' }} />
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 8 }}>
+              {stats.pendientes} tareas pendientes
+            </div>
           </div>
-          <div className="card">
-            <div className="card-title">Próximos eventos
-              <Link to="/app/calendario" style={{ fontSize: 12, color: 'var(--purple)', fontWeight: 400 }}>Ver todos →</Link>
+
+          {/* Próximos eventos */}
+          <div className="card animate-in-2">
+            <div className="card-title">
+              📅 Próximos eventos
+              <Link to="/app/calendario" style={{ fontSize: 12, color: 'var(--purple)', fontWeight: 500 }}>Ver todos →</Link>
             </div>
-            {proximos.length === 0 && <div className="empty"><p>Sin eventos próximos</p></div>}
-            {proximos.map(ev => (
-              <div key={ev.id} style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 0', borderBottom: 'var(--border)' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: ev.tipus === 'festa' ? 'var(--coral)' : ev.tipus === 'recordatori' ? 'var(--amber)' : 'var(--purple)', flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontSize: 13 }}>{ev.titol}</div>
-                  <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>{new Date(ev.data).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</div>
+            {proximos.length === 0
+              ? <div className="empty" style={{ padding: '16px 0' }}><p>Sin eventos próximos</p></div>
+              : proximos.map(ev => (
+                <div key={ev.id} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '8px 0', borderBottom: 'var(--border)' }}>
+                  <span style={{ fontSize: 18 }}>{eventoEmoji[ev.tipus] || '📌'}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{ev.titol}</div>
+                    <div style={{ fontSize: 11, color: 'var(--gray-400)' }}>
+                      {new Date(ev.data).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: eventoColors[ev.tipus] || 'var(--purple)', flexShrink: 0 }} />
                 </div>
-              </div>
-            ))}
+              ))
+            }
           </div>
         </div>
-        <div className="card">
-          <div className="card-title">Residentes del piso</div>
+
+        {/* Residentes */}
+        <div className="card animate-in-3">
+          <div className="card-title">👥 Residentes del piso</div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {membres.map(m => (
-              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--gray-100)', borderRadius: 'var(--radius-md)', padding: '6px 10px' }}>
+              <div key={m.id} className="member-chip">
                 <div className="avatar sm">{m.usuaris?.nom?.split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase()}</div>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 500 }}>{m.usuaris?.nom}</div>
-                  <div style={{ fontSize: 10, color: 'var(--gray-400)' }}>{m.rol === 'administrador' ? 'Admin' : 'Residente'}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{m.usuaris?.nom}</div>
+                  <div style={{ fontSize: 10, color: 'var(--gray-400)' }}>{m.rol === 'administrador' ? '⭐ Admin' : 'Residente'}</div>
                 </div>
               </div>
             ))}

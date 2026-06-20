@@ -6,17 +6,18 @@ const NAV = [
   { to: '/app', label: 'Inicio', icon: IconHome, end: true },
   { to: '/app/tareas', label: 'Tareas', icon: IconCheck },
   { to: '/app/gastos', label: 'Gastos', icon: IconReceipt },
-  { to: '/app/chat', label: 'Chat del piso', icon: IconMsg },
+  { to: '/app/chat', label: 'Chat', icon: IconMsg },
   { to: '/app/calendario', label: 'Calendario', icon: IconCal },
 ]
 const NAV2 = [
   { to: '/app/miembros', label: 'Miembros', icon: IconUsers },
+  { to: '/app/planes', label: 'Plan', icon: IconStar },
   { to: '/app/soporte', label: 'Soporte', icon: IconHelp },
 ]
 
 export default function AppShell({ children }) {
   const { perfil, tancarSessio } = useAuth()
-  const { pis, rolUsuari } = usePis()
+  const { pis, rolUsuari, isPremium } = usePis()
   const navigate = useNavigate()
 
   async function handleLogout() {
@@ -25,42 +26,55 @@ export default function AppShell({ children }) {
   }
 
   const inicials = perfil?.nom?.split(' ').map(x => x[0]).slice(0, 2).join('').toUpperCase() || 'U'
+  const premium = isPremium()
 
   return (
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-logo">
           <div className="logo-text">RoomieUs</div>
-          <div className="pis-name">{pis ? pis.nom : 'Sin piso asignado'}</div>
+          <div className="pis-name">
+            {pis ? pis.nom : 'Sin piso'}
+            {premium && <span style={{ marginLeft: 6, fontSize: 10, background: 'var(--teal-light)', color: 'var(--teal)', padding: '1px 6px', borderRadius: 10, fontWeight: 700 }}>PRO</span>}
+          </div>
         </div>
+
         <nav className="nav">
           <div className="nav-section-label">Principal</div>
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
-              <Icon />{label}
+              <Icon /><span>{label}</span>
             </NavLink>
           ))}
+
           <div className="nav-section-label" style={{ marginTop: 8 }}>Gestión</div>
           {NAV2.map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
-              <Icon />{label}
+              <Icon />
+              <span>{label}</span>
+              {to === '/app/planes' && !premium && (
+                <span style={{ marginLeft: 'auto', fontSize: 9, background: 'var(--amber-light)', color: 'var(--amber)', padding: '2px 6px', borderRadius: 8, fontWeight: 700 }}>FREE</span>
+              )}
             </NavLink>
           ))}
+
           {rolUsuari === 'administrador' && (
             <NavLink to="/app/configuracion" className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
-              <IconSettings />Configuración
+              <IconSettings /><span>Configuración</span>
             </NavLink>
           )}
         </nav>
+
         <div className="sidebar-user">
           <div className="avatar">{inicials}</div>
           <div className="user-info" style={{ flex: 1, minWidth: 0 }}>
             <div className="name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{perfil?.nom}</div>
-            <div className="role">{rolUsuari === 'administrador' ? 'Administrador' : 'Residente'}</div>
+            <div className="role">{rolUsuari === 'administrador' ? '⭐ Admin' : 'Residente'}</div>
           </div>
           <button className="btn-icon btn" onClick={handleLogout} title="Cerrar sesión"><IconLogout /></button>
         </div>
       </aside>
+
       <main className="main">{children}</main>
     </div>
   )
@@ -72,6 +86,7 @@ function IconReceipt() { return <svg viewBox="0 0 24 24" fill="none" stroke="cur
 function IconMsg() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> }
 function IconCal() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> }
 function IconUsers() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg> }
+function IconStar() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> }
 function IconHelp() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg> }
 function IconSettings() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> }
 function IconLogout() { return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="15" height="15"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg> }
